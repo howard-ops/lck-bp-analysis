@@ -19,7 +19,7 @@
 - 自動化數據 Pipeline（每日排程）
 
 ## 資料來源
-- Oracle's Elixir（4820 筆 2024 LCK 比賽數據）
+- Oracle's Elixir（LCK 比賽數據)
 - Leaguepedia Cargo API（自動化抓取）
 
 ## 專案結構
