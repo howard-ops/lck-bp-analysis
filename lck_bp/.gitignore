@@ -1,0 +1,15 @@
+# dbt
+target/
+dbt_packages/
+logs/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# 資料集（太大了）
+datasets/
+
+# 敏感資訊
+profiles.yml

@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: lck_raw
+    database: lck_bp
+    schema: public
+    tables:
+      - name: raw_matches
+        description: "Oracle's Elixir 原始比賽資料"

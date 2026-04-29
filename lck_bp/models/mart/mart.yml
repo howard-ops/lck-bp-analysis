@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: fact_champion_winrate
+    description: "每個英雄在每個版本的勝率統計"
+    columns:
+      - name: champion_name
+        tests:
+          - not_null
+      - name: patch_version
+        tests:
+          - not_null
+      - name: win_rate_pct
+        tests:
+          - not_null
+
+  - name: dim_player
+    description: "選手維度表，含 SCD Type 2 歷史記錄"
+    columns:
+      - name: player_sk
+        tests:
+          - unique
+          - not_null
+      - name: player_name
+        tests:
+          - not_null
+      - name: is_current
+        tests:
+          - not_null
+
+  - name: fact_bp_score
+    description: "英雄跨版本加權勝率"
+    tests:
+      - unique:
+          column_name: "champion_name || '|' || role"
+    columns:
+      - name: champion_name
+        tests:
+          - not_null
+      - name: weighted_win_rate
+        tests:
+          - not_null
