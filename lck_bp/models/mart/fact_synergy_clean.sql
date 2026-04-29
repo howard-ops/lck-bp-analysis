@@ -2,6 +2,7 @@ select
     champion_a,
     champion_b,
     relationship,
+    season_year,
     win_rate_pct,
     games_together
 from {{ ref('fact_champion_synergy') }}

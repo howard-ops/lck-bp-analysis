@@ -12,42 +12,66 @@ conn = psycopg2.connect(
 )
 cursor = conn.cursor()
 
-print("讀取 CSV 中...")
-df = pd.read_csv(
+# 三年的 CSV 檔案
+csv_files = [
     'C:/Users/user/lck-bp-project/lck_bp/datasets/2024_LoL_esports_match_data_from_OraclesElixir.csv',
-    usecols=[
-        'gameid', 'date', 'patch', 'league', 'side',
-        'position', 'playername', 'teamname', 'champion',
-        'result', 'gamelength',
+    'C:/Users/user/lck-bp-project/lck_bp/datasets/2025_LoL_esports_match_data_from_OraclesElixir.csv',
+    'C:/Users/user/lck-bp-project/lck_bp/datasets/2026_LoL_esports_match_data_from_OraclesElixir.csv',
+]
+
+all_records = []
+
+for csv_file in csv_files:
+    year = csv_file.split('/')[-1][:4]
+    print(f"讀取 {year} 年資料...")
+
+    df = pd.read_csv(
+        csv_file,
+        usecols=[
+            'gameid', 'date', 'patch', 'league', 'side',
+            'position', 'playername', 'teamname', 'champion',
+            'result', 'gamelength',
+            'kills', 'deaths', 'assists',
+            'damagetochampions', 'damageshare',
+            'damagetakenperminute', 'damagemitigatedperminute',
+            'cspm', 'earnedgold', 'earnedgoldshare',
+            'total cs',
+            'ban1', 'ban2', 'ban3', 'ban4', 'ban5'
+        ],
+        dtype=str
+    )
+
+    # 只留 LCK、排除隊伍統計列
+    df = df[df['league'] == 'LCK']
+    df = df[df['position'] != 'team']
+    print(f"  {year} LCK 選手資料：{len(df)} 筆")
+
+    # 清理數值欄位
+    numeric_cols = [
+        'result', 'gamelength', 'kills', 'deaths', 'assists',
+        'damagetochampions', 'damageshare', 'damagetakenperminute',
+        'damagemitigatedperminute', 'cspm', 'earnedgold',
+        'earnedgoldshare', 'total cs'
+    ]
+    for col in numeric_cols:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    df = df.rename(columns={'total cs': 'total_cs'})
+    df = df.dropna(subset=['gameid', 'playername', 'champion'])
+
+    records = df[[
+        'gameid', 'date', 'patch', 'teamname', 'playername',
+        'position', 'champion', 'result', 'gamelength', 'league', 'side',
         'kills', 'deaths', 'assists',
         'damagetochampions', 'damageshare',
         'damagetakenperminute', 'damagemitigatedperminute',
-        'cspm', 'earnedgold', 'earnedgoldshare',
-        'total cs'
-    ],
-    dtype=str
-)
+        'cspm', 'earnedgold', 'earnedgoldshare', 'total_cs',
+        'ban1', 'ban2', 'ban3', 'ban4', 'ban5'
+    ]].values.tolist()
 
-# 只留 LCK 賽區、排除隊伍整體統計列
-print(f"原始資料：{len(df)} 筆")
-df = df[df['league'] == 'LCK']
-df = df[df['position'] != 'team']
-print(f"LCK 選手資料：{len(df)} 筆")
+    all_records.extend(records)
 
-# 清理數值欄位
-numeric_cols = [
-    'result', 'gamelength', 'kills', 'deaths', 'assists',
-    'damagetochampions', 'damageshare', 'damagetakenperminute',
-    'damagemitigatedperminute', 'cspm', 'earnedgold',
-    'earnedgoldshare', 'total cs'
-]
-for col in numeric_cols:
-    df[col] = pd.to_numeric(df[col], errors='coerce')
-
-# 重新命名 total cs
-df = df.rename(columns={'total cs': 'total_cs'})
-
-df = df.dropna(subset=['gameid', 'playername', 'champion'])
+print(f"\n總計：{len(all_records)} 筆資料")
 
 # 清空舊資料
 print("清空舊資料...")
@@ -55,15 +79,6 @@ cursor.execute("TRUNCATE TABLE raw_matches")
 
 # 匯入資料
 print("匯入資料中...")
-records = df[[
-    'gameid', 'date', 'patch', 'teamname', 'playername',
-    'position', 'champion', 'result', 'gamelength', 'league', 'side',
-    'kills', 'deaths', 'assists',
-    'damagetochampions', 'damageshare',
-    'damagetakenperminute', 'damagemitigatedperminute',
-    'cspm', 'earnedgold', 'earnedgoldshare', 'total_cs'
-]].values.tolist()
-
 execute_values(
     cursor,
     """INSERT INTO raw_matches
@@ -72,13 +87,14 @@ execute_values(
         kills, deaths, assists,
         damagetochampions, damageshare,
         damagetakenperminute, damagemitigatedperminute,
-        cspm, earnedgold, earnedgoldshare, total_cs)
+        cspm, earnedgold, earnedgoldshare, total_cs,
+        ban1, ban2, ban3, ban4, ban5)
        VALUES %s
        ON CONFLICT (gameid, playername) DO NOTHING""",
-    records
+    all_records
 )
 
 conn.commit()
 cursor.close()
 conn.close()
-print(f"完成！匯入 {len(records)} 筆資料")
+print("完成！")

@@ -47,7 +47,10 @@ final as (
         round(avg(earnedgoldshare) * 100, 2)                   as avg_gold_share,
 
         -- 勝率
-        round(sum(result)::numeric / count(*) * 100, 2)        as win_rate_pct
+        round(sum(result)::numeric / count(*) * 100, 2)        as win_rate_pct,
+
+        --年度
+        extract(year from match_date::date)::integer as season_year
 
     from matches
     group by
@@ -55,7 +58,8 @@ final as (
         team_name,
         role,
         side,
-        patch_version
+        patch_version,
+        extract(year from match_date::date)::integer
 )
 
 select * from final

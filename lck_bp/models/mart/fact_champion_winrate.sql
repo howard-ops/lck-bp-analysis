@@ -7,6 +7,7 @@ winrate as (
         champion_name,
         role,
         patch_version,
+        extract(year from match_date::date)::integer as season_year,
         count(*)                                    as games_played,
         sum(result)                                 as wins,
         round(
@@ -16,7 +17,8 @@ winrate as (
     group by
         champion_name,
         role,
-        patch_version
+        patch_version,
+        extract(year from match_date::date)::integer
 )
 
 select * from winrate

@@ -12,6 +12,7 @@ joined as (
         w.champion_name,
         w.role,
         w.patch_version,
+        w.season_year,
         w.games_played,
         w.win_rate_pct,
         p.patch_weight,
@@ -26,6 +27,7 @@ final as (
     select
         champion_name,
         role,
+        season_year,
         round(
             sum(weighted_score) / sum(patch_weight)
         , 2)                                as weighted_win_rate,
@@ -35,7 +37,8 @@ final as (
     from joined
     group by
         champion_name,
-        role
+        role,
+        season_year
 )
 
 select * from final

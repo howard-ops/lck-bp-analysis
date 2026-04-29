@@ -7,6 +7,7 @@ pairs as (
     select
         a.match_id,
         a.patch_version,
+        a.season_year,
         a.champion_name     as champion_a,
         b.champion_name     as champion_b,
         a.team_name         as team_a,
@@ -24,6 +25,7 @@ classified as (
         champion_a,
         champion_b,
         patch_version,
+        season_year,
         case
             when team_a = team_b then 'synergy'
             else 'counter'
@@ -32,12 +34,12 @@ classified as (
     from pairs
 ),
 
--- 計算每種組合的勝率
 final as (
     select
         champion_a,
         champion_b,
         patch_version,
+        season_year,
         relationship,
         count(*)            as games_together,
         sum(result)         as wins,
@@ -49,6 +51,7 @@ final as (
         champion_a,
         champion_b,
         patch_version,
+        season_year,
         relationship
 )
 

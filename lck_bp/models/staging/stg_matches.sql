@@ -24,7 +24,13 @@ renamed as (
         cspm                                as cspm,
         earnedgold                          as earnedgold,
         earnedgoldshare                     as earnedgoldshare,
-        total_cs                            as total_cs
+        total_cs                            as total_cs,
+        ban1                                as ban1,
+        ban2                                as ban2,
+        ban3                                as ban3,
+        ban4                                as ban4,
+        ban5                                as ban5,
+        extract(year from date::date)::integer as season_year
     from source
 )
 
